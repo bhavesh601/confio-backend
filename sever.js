@@ -6,20 +6,19 @@ const nodemailer = require("nodemailer");
 
 const app = express();
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 app.use(cors({
   origin: [
     "http://127.0.0.1:5500",
     "http://localhost:5500",
     "https://confioengineeringsolutions.netlify.app"
   ],
-  methods: ["GET", "POST"],
+  methods: ["GET", "POST", "OPTIONS"],
   credentials: true
 }));
-app.options("*", cors());
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
