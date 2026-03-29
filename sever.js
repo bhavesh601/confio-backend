@@ -20,10 +20,24 @@ app.use(cors({
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+ 
+app.post("/enquiry", (req, res) => {
+  try {
+    console.log("Received form data:", req.body);
 
-// ─────────────────────────────────────────────
-// 1. MySQL Database Connection
-// ─────────────────────────────────────────────
+    res.status(200).json({
+      success: true,
+      message: "Enquiry submitted successfully",
+      data: req.body
+    });
+  } catch (error) {
+    console.error("Error in /enquiry route:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+});
 const db = mysql.createConnection({
   host:     process.env.MYSQL_HOST     || "localhost",
   port:     process.env.MYSQL_PORT     || 3306,
