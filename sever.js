@@ -19,7 +19,7 @@ app.use(cors({
   methods: ["GET", "POST"],
   credentials: true
 }));
-
+app.options("*", cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
