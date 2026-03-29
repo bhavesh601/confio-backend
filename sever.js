@@ -5,7 +5,9 @@ const mysql = require("mysql2");
 const nodemailer = require("nodemailer");
 
 const app = express();
-
+app.get("/test", (req, res) => {
+  res.json({ message: "Backend working perfectly" });
+});
 app.use(cors({
   origin: [
     "http://127.0.0.1:5500",
