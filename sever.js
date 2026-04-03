@@ -5,9 +5,7 @@ const mysql = require("mysql2");
 const nodemailer = require("nodemailer");
 
 const app = express();
-app.get("/test", (req, res) => {
-  res.json({ message: "Backend working perfectly" });
-});
+
 app.use(cors({
   origin: [
     "http://127.0.0.1:5500",
@@ -24,6 +22,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.get("/test", (req, res) => {
+  res.json({ message: "Backend working perfectly" });
+});
 // Database Connection
 const db = mysql.createConnection({
   host: process.env.MYSQL_HOST,
@@ -121,8 +122,3 @@ app.post("/enquiry", (req, res) => {
   });
 });
 
-// Start Server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-});
