@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const mysql = require("mysql2");
-const nodemailer = require("nodemailer");
+const axios = require("axios");
 
 const app = express();
 
@@ -59,15 +59,15 @@ db.connect((err) => {
 });
 
 // Email Transporter
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.BREVO_USER,
-    pass: process.env.BREVO_PASS,
-  },
-});
+// const transporter = nodemailer.createTransport({
+//   host: "smtp-relay.brevo.com",
+//   port: 587,
+//   secure: false,
+//   auth: {
+//     user: process.env.BREVO_USER,
+//     pass: process.env.BREVO_PASS,
+//   },
+// });
 
 // transporter.verify((error) => {
 //   if (error) console.error("❌ Email Setup Error:", error.message);
@@ -80,7 +80,7 @@ app.get("/", (req, res) => {
 });
 
 // Enquiry Route
-app.post("/enquiry", (req, res) => {
+app.post("/enquiry", async (req, res) => {
   console.log("📩 Request received:", req.body);
 
   const { name, phone, email, message } = req.body;
@@ -91,7 +91,7 @@ app.post("/enquiry", (req, res) => {
 
   const sql = "INSERT INTO enquiries (name, phone, email, message) VALUES (?, ?, ?, ?)";
 
-  db.query(sql, [name, phone, email, message || ""], (err, result) => {
+  db.query(sql, [name, phone, email, message || ""], async (err, result) => {
     if (err) {
       console.error("❌ DB Insert Error:", err.message);
       return res.status(500).json({ error: "Database error. Please try again." });
@@ -99,28 +99,51 @@ app.post("/enquiry", (req, res) => {
 
     console.log(`✅ Saved to DB with ID: ${result.insertId}`);
 
-    const mailOptions = {
-      from: process.env.BREVO_USER,
-      to: process.env.MANAGER_EMAIL,
-      subject: "🔔 New Online Enquiry - Confio Engineering Solutions",
-      html: `
-        <h2>New Enquiry Received</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Phone:</strong> ${phone}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Message:</strong> ${message || "No message"}</p>
-      `,
-    };
+    try {
+      const emailResponse = await axios.post(
+        "https://api.brevo.com/v3/smtp/email",
+        {
+          sender: {
+            name: "Confio Engineering Solutions",
+            email: process.env.BREVO_USER
+          },
+          to: [
+            {
+              email: process.env.MANAGER_EMAIL
+            }
+          ],
+          subject: "🔔 New Online Enquiry - Confio Engineering Solutions",
+          htmlContent: `
+            <h2>New Enquiry Received</h2>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Phone:</strong> ${phone}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Message:</strong> ${message || "No message"}</p>
+          `
+        },
+        {
+          headers: {
+            "api-key": process.env.BREVO_API_KEY,
+            "Content-Type": "application/json"
+          }
+        }
+      );
 
-    transporter.sendMail(mailOptions, (emailErr, info) => {
-      if (emailErr) {
-        console.error("❌ Email Error:", emailErr.message);
-        return res.status(200).json({ message: "Enquiry saved!", dbId: result.insertId });
-      }
+      console.log("✅ Email sent via Brevo API:", emailResponse.data);
 
-      console.log("✅ Email sent:", info.response);
-      return res.status(200).json({ message: "Enquiry saved and email sent!", dbId: result.insertId });
-    });
+      return res.status(200).json({
+        message: "Your enquiry has been submitted successfully.",
+        dbId: result.insertId
+      });
+
+    } catch (emailErr) {
+      console.error("❌ Brevo API Email Error:", emailErr.response?.data || emailErr.message);
+
+      return res.status(200).json({
+        message: "Your enquiry has been submitted successfully.",
+        dbId: result.insertId
+      });
+    }
   });
 });
 
