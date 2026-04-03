@@ -19,8 +19,8 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/test", (req, res) => {
   res.json({ message: "Backend working perfectly" });
@@ -69,10 +69,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-transporter.verify((error) => {
-  if (error) console.error("❌ Email Setup Error:", error.message);
-  else console.log("✅ Email server is ready to send messages");
-});
+// transporter.verify((error) => {
+//   if (error) console.error("❌ Email Setup Error:", error.message);
+//   else console.log("✅ Email server is ready to send messages");
+// });
 
 // Test Route
 app.get("/", (req, res) => {
@@ -100,7 +100,7 @@ app.post("/enquiry", (req, res) => {
     console.log(`✅ Saved to DB with ID: ${result.insertId}`);
 
     const mailOptions = {
-      from: process.env.GMAIL_USER,
+      from: process.env.BREVO_USER,
       to: process.env.MANAGER_EMAIL,
       subject: "🔔 New Online Enquiry - Confio Engineering Solutions",
       html: `
