@@ -60,10 +60,12 @@ db.connect((err) => {
 
 // Email Transporter
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.GMAIL_USER,   // ← must be exactly this
-    pass: process.env.GMAIL_PASS,   // ← must be exactly this
+    user: process.env.BREVO_USER,
+    pass: process.env.BREVO_PASS,
   },
 });
 
